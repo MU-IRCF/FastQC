@@ -179,18 +179,21 @@ if ($min_length) {
 	push @java_args ,"-Dfastqc.min_length=$min_length";
 }
 
+# Added 10GB to the original default memory
+my $memory = 10250;
 if ($threads) {
 	if ($threads < 1) {
 		die "Number of threads must be a positive integer";
 	}
 	
 	push @java_args ,"-Dfastqc.threads=$threads";
-	my $memory = 250 * $threads;
-	unshift @java_args,"-Xmx${memory}m";
+	
+	# If threads > 10, increase memory to almost 1GB per thread
+	if ($threads > 10) {
+		$memory = 950 * $threads;
+	}
 }
-else {
-	unshift @java_args,'-Xmx250m';
-}
+unshift @java_args,"-Xmx${memory}m";
 
 if ($kmer_size) {
 	unless ($kmer_size =~ /^\d+$/) {
